@@ -1,0 +1,6 @@
+{
+	"files.associations": {
+		"*.?zz": "cpp",
+		"concepts": "cpp"
+	}
+}
