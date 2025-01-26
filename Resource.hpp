@@ -71,7 +71,7 @@ template <typename T> concept IsNotResource = !IsResource<T>;
 //	struct A {
 //		RAII_init(raii, RAII_Struct);
 //		A(int x) {}
-//		~A() {}
+//		~A() {} //	you have to define destructor if using RAII_init
 //		void init(float y) { new (&self.raii) RAII_Struct; }
 //		void finish() noexcept { self.raii.~RAII_Struct(); }
 //		void use() {}
