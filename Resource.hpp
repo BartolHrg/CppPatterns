@@ -51,8 +51,7 @@ template <typename T> struct  IsResourceT<Resource<T>> : std ::  true_type {};
 template <typename T> concept IsResource = IsResourceT<T>::value;
 template <typename T> concept IsNotResource = !IsResource<T>;
 
-//	RAII_init(var, Type)
-//	evade RAII 
+//	RAII_init(var, Type) - bypass RAII 
 //	you should call `new (&var) Type(args)` in init (this is called placement new)
 //	and `var.~Type()` in finish
 //	you will have to define destructor for enclosing class
@@ -72,7 +71,7 @@ template <typename T> concept IsNotResource = !IsResource<T>;
 //	};
 //	
 //	struct A {
-//		RAII_init(raii, RAII_Struct); //	evade RAII
+//		RAII_init(raii, RAII_Struct); //	bypass RAII
 //		A(int x) {}
 //		~A() {} //	you have to define destructor if using RAII_init
 //		void init(float y) { new (&self.raii) RAII_Struct; }

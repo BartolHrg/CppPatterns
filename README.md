@@ -44,7 +44,7 @@ struct RAII_Struct {
 	~RAII_Struct() { /* release resource */ }
 };
 struct A {
-	RAII_init(raii, RAII_Struct); //	evade RAII
+	RAII_init(raii, RAII_Struct); //	bypass RAII
 	A(int x) {}
 	~A() {} //	you have to define destructor if using RAII_init
 	void init(float y) { new (&self.raii) RAII_Struct; }
