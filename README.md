@@ -38,12 +38,13 @@ int main() {
 ```
 Another example  
 ```c++
+//	struct that uses RAII
 struct RAII_Struct {
 	RAII_Struct() { /* take resource */ }
 	~RAII_Struct() { /* release resource */ }
 };
 struct A {
-	RAII_init(raii, RAII_Struct);
+	RAII_init(raii, RAII_Struct); //	evade RAII
 	A(int x) {}
 	~A() {} //	you have to define destructor if using RAII_init
 	void init(float y) { new (&self.raii) RAII_Struct; }
@@ -60,7 +61,7 @@ int main() {
 }
 ```
 Combination with smart pointers  
-(even though smart pointers are not needed when using init/finish + Resource)
+(even though smart pointers are not usually needed when using init/finish + Resource)
 ```c++
 int main() {
 	std::shared_ptr<Resource<Logger>> log = std::make_shared<Resource<Logger>>("./a.log");

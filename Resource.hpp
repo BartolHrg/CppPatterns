@@ -52,6 +52,9 @@ template <typename T> concept IsResource = IsResourceT<T>::value;
 template <typename T> concept IsNotResource = !IsResource<T>;
 
 //	RAII_init(var, Type)
+//	evade RAII 
+//	you should call `new (&var) Type(args)` in init (this is called placement new)
+//	and `var.~Type()` in finish
 //	you will have to define destructor for enclosing class
 #define RAII_init(var, ...) union { char _resource_ ## var = 0; __VA_ARGS__ (var); }
 //	#define RAII_init(var, ...) union { char _resource_ ## var[sizeof(__VA_ARGS__)] {0?}; __VA_ARGS__ (var); }
@@ -62,14 +65,14 @@ template <typename T> concept IsNotResource = !IsResource<T>;
 
 
 
-
+//	struct that uses RAII
 //	struct RAII_Struct {
 //		RAII_Struct() { /* take resource */ }
 //		~RAII_Struct() { /* release resource */ }
 //	};
 //	
 //	struct A {
-//		RAII_init(raii, RAII_Struct);
+//		RAII_init(raii, RAII_Struct); //	evade RAII
 //		A(int x) {}
 //		~A() {} //	you have to define destructor if using RAII_init
 //		void init(float y) { new (&self.raii) RAII_Struct; }
