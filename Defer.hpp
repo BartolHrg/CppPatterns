@@ -34,7 +34,8 @@ struct _DeferVar {
 //		if (!f) { return false; }
 //		defer { fclose(f); };
 //		//	file operations
-//		fscanf(f, "%d", ...);
+//		int a;
+//		return fscanf(f, "%d", &a) == 1;
 //	}
 
 

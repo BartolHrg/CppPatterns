@@ -68,3 +68,17 @@ int main() {
 	log->write(8);
 }
 ```
+
+## defer
+
+Postpone execution of a block to the end of scope.  
+```c++
+bool f() {
+	FILE* f = fopen(...);
+	if (!f) { return false; }
+	defer { fclose(f); };
+	//	file operations
+	int a;
+	return fscanf(f, "%d", &a) == 1;
+}
+```
