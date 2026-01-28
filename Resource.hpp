@@ -1,50 +1,64 @@
 #pragma once
 
 #include <concepts>
-#include "./Self.hpp"
+
+#ifndef fun
+#define fun
+#endif
+
+#define self (*this)
+
+
+
+template <typename>
+struct FunctionTraits;
+
+template <typename T, typename... Args>
+struct FunctionTraits<T(Args...)> {
+	using ReturnType = T;
+};
+template <typename T, typename... Args>
+struct FunctionTraits<T (*)(Args...)> {
+	using ReturnType = T;
+};
+template <typename T, typename C, typename... Args>
+struct FunctionTraits<T (C::*)(Args...)> {
+	using ReturnType = T;
+};
+template <typename F>
+using ReturnType = typename FunctionTraits<F> :: ReturnType;
 
 template <typename T>
-concept HasInitFinish = requires(T t) {
-	requires std::is_member_function_pointer_v<decltype(&T::init)>;
-	{ t.finish() } noexcept /* note: LZZ doesn't allow noexcept */;
+concept Resourceable = requires(T t) {
+	requires std :: is_member_function_pointer_v<decltype(&T :: init)>;
+	requires std :: convertible_to<ReturnType<decltype(&T :: init)>, bool>;
+	{ t.finish() } noexcept;
 };
 template <typename T, typename... Args>
-concept HasInitFinishBool = requires(T t, Args... args) {
+concept ActuallyResourceable = requires(T t, Args... args) {
 	{ t.init(args...) } -> std :: convertible_to<bool>;
-	{ t.finish() } noexcept /* note: LZZ doesn't allow noexcept */;
+	{ t.finish() } noexcept;
 };
-template <typename T, typename... Args>
-concept HasInitFinishVoid = requires(T t, Args... args) {
-	{ t.init(args...) } -> std::same_as<void>;
-	{ t.finish() } noexcept /* note: LZZ doesn't allow noexcept */;
+template <typename T> requires (Resourceable<T>)
+struct Resource : T {
+	bool _resource_ok = true;
+	template <typename... Args> requires (ActuallyResourceable<T, Args...>)
+	fun explicit inline Resource(T t, Args&&... args) : T(t) {
+		self._resource_ok = self.init(args...);
+	}
+	template <typename... Args> requires (ActuallyResourceable<T, Args...>)
+	fun explicit inline Resource(Args&&... args) {
+		self._resource_ok = self.init(args...);
+	}
+	fun inline ~Resource() {
+		self.finish();
+	}
+	// Resource(Resource<T>) = delete;
+	fun Resource(Resource<T>&) = delete;
+	fun Resource(Resource<T>&&) = delete;
+	fun operator bool() { return self._resource_ok; }
 };
-template <typename T> requires (HasInitFinish<T>)
-struct Resource : public T {
-	bool ok = true;
-	template <typename... Args> requires (HasInitFinishBool<T, Args...>)
-	explicit inline Resource(T t, Args&&... args) : T(t) {
-		self.ok = self.init(args...);
-	}
-	template <typename... Args> requires (HasInitFinishBool<T, Args...>)
-	explicit inline Resource(Args&&... args) {
-		self.ok = self.init(args...);
-	}
-	template <typename... Args> requires (HasInitFinishVoid<T, Args...>)
-	explicit inline Resource(T t, Args&&... args) : T(t) {
-		self.init(args...);
-		self.ok = true;
-	}
-	template <typename... Args> requires (HasInitFinishVoid<T, Args...>)
-	explicit inline Resource(Args&&... args) {
-		self.init(args...);
-		self.ok = true;
-	}
-	~Resource() {
-		self.finish(); //	we could add some way to check result of finish through bool*
-	}
-	Resource(Resource<T>&) = delete;
-	Resource(Resource<T>&&) = delete;
-};
+
 
 template <typename T> struct  IsResourceT              : std :: false_type {};
 template <typename T> struct  IsResourceT<Resource<T>> : std ::  true_type {};
@@ -60,6 +74,9 @@ template <typename T> concept IsNotResource = !IsResource<T>;
 
 
 
+// struct ResourceCollectionWatcher {
+	
+// };
 
 
 

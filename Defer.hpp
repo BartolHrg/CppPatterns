@@ -1,16 +1,25 @@
-#include <iostream>
+#pragma once
+
 #include <type_traits>
 
-template <auto f> requires std::is_nothrow_invocable_v<decltype(f)>
-struct DeferVar {
-	~DeferVar() {
+#ifndef fun
+#define fun
+#endif
+
+//	defers execution of a code block.
+//	It can use variables declared before it.
+//	defer {/* code */};
+#define defer _DeferVar const _defer_macro1(__COUNTER__) = [&] noexcept
+#define _defer_macro1(cnt) _defer_macro2(cnt)
+#define _defer_macro2(cnt) tmp_defer_var_ ## cnt
+template <typename F> requires (std :: is_nothrow_invocable_v<F>)
+struct _DeferVar {
+	F f;
+	fun inline _DeferVar(F f) : f(f) {}
+	fun inline ~_DeferVar() {
 		f();
 	}
 };
-//	this is surronded by noexcept by-reference lambda: [&] noexcept {  }
-#define defer(...) _defer_macro2(__COUNTER__, __VA_ARGS__)
-#define _defer_macro2(...) _defer_macro1(__VA_ARGS__)
-#define _defer_macro1(cnt, ...) [[no_unique_address]] DeferVar<[&]noexcept{__VA_ARGS__}> const tmp_defer_var_ ## cnt
 
 
 
@@ -19,6 +28,14 @@ struct DeferVar {
 
 
 
+//	e.g.
+//	bool f() {
+//		FILE* f = fopen(...);
+//		if (!f) { return false; }
+//		defer { fclose(f); };
+//		//	file operations
+//		fscanf(f, "%d", ...);
+//	}
 
 
 
@@ -26,29 +43,18 @@ struct DeferVar {
 //	void h() noexcept {
 //		std :: cout << "from h with love" << std :: endl;
 //	}
-
+//	
 //	// void m() {
 //	auto& m() {
-//		defer(h(););
-//		defer({h();});
-//		defer( //	this is surronded by noexcept by-reference lambda: [&] noexcept {  }
+//		defer { h(); };
+//		defer { //	this is preceeded by noexcept by-reference lambda: [&] noexcept 
 //			std :: cout << "lambda" << std :: endl;
-//		);
-//		defer({
-//			std :: cout << "lambda" << std :: endl;
-//		});
-//		DeferVar<[&] noexcept {
-//			std :: cout << "custom variable" << std :: endl;
-//			return;
-//		}> tmp;
+//		};
 //		return std :: cout << "hello" << std :: endl;
 //	}
 //	int main() {
 //		m();
 //	}
 //	//	hello
-//	//	custom variable
 //	//	lambda
-//	//	lambda
-//	//	from h with love
 //	//	from h with love
